@@ -1,6 +1,6 @@
 <template>
   <div>
-    <van-search shape="round" placeholder="请输入搜索关键词" v-model="value" />
+    <van-search shape="round" placeholder="请输入搜索关键词" v-model="value" @input="inputfn"/>
     <template v-if="list.length == 0">
       <van-cell title="热门搜索" />
       <div style="padding: 10px 16px">
@@ -28,18 +28,26 @@
         finished-text="没有更多了"
         @load="onLoad"
       >
-        <van-cell
+        <!-- <van-cell
           v-for="item in list"
           :key="item.id"
           :title="item.name"
           :label="`${item.ar[0].name}-${item.name}`"
-        />
+        /> -->
+      <SongItem
+          v-for="obj in list"
+          :key="obj.id"
+          :name="obj.name"
+          :author="obj.ar[0].name"
+          :id="obj.id"
+></SongItem>
       </van-list>
     </template>
   </div>
 </template>
 <script>
 import { getsearchtagapi, getsearchlistapi } from "@/apis";
+import SongItem from '@/components/SongItem.vue'
 export default {
   data() {
     return {
@@ -48,7 +56,12 @@ export default {
       list: [],
       loading: false,
       finished: false,
+      page:1,
+      timer:null
     };
+  },
+  components:{
+    SongItem
   },
   created() {
     this.gettag();
@@ -57,9 +70,8 @@ export default {
     async gettag() {
       try {
         const res = await getsearchtagapi();
-        // console.log(res);
         this.tags = res.data.result.hots;
-        // console.log(this.tags);
+        return res
       } catch (e) {
         console.log(e);
       }
@@ -69,10 +81,9 @@ export default {
         this.value = val;
         const res = await getsearchlistapi({
           keywords: this.value,
+          limit: 20,
         });
-        // console.log(res);
         this.list = res.data.result.songs;
-        // console.log(this.list);
         this.$toast.success("成功文案");
       } catch (e) {
         console.log(e);
@@ -81,16 +92,46 @@ export default {
     },
     async onLoad() {
       try {
+        this.page++
         const res = await getsearchlistapi({
           keywords: this.value,
-          limit: this.limit,
-          offset: 0,
+          limit: 20,
+        offset: (this.page - 1) * 20,
         });
-        console.log(res);
+        this.list=[...this.list, ...res.data.result.songs]
+        this.loading = false;
+        if (res.data.result.songs === undefined) {
+          this.finished = true; 
+          this.loading = false; 
+          return;
+        }
+        // console.log(res);
       } catch (e) {
         console.log(e);
       }
     },
+    async inputfn(){
+      if(this.timer) clearTimeout(this.timer);
+      this.timer = setTimeout(async()=>{
+        if(this.value.length==0){
+        this.list=[]
+        return
+      }
+      try {
+        const res = await getsearchlistapi({
+          keywords: this.value,
+          limit: 20,
+        offset: (this.page - 1) * 20,
+        })
+        // console.log( res);
+        if (res.data.result.songs === undefined) {
+        this.list = [];
+        return;
+    }
+        this.list=res.data.result.songs
+      }catch (e) { console.log(e);}
+      },500)
+    }
   },
 };
 </script>

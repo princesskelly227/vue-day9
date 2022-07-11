@@ -10,22 +10,32 @@
       </van-grid-item>
     </van-grid>
     <van-cell class="title" title="最佳匹配" />
-   <van-cell :label="`${item.song&&item.song.artists[0]&&item.song.artists[0].name||'未知歌手'} - ${item.name}`" :title="item.name" v-for="item in newlist" :key="item.id">
+   <!-- <van-cell :label="`${item.song&&item.song.artists[0]&&item.song.artists[0].name||'未知歌手'} - ${item.name}`" :title="item.name" v-for="item in newlist" :key="item.id">
     <template>
       <van-icon color="#000" name="play-circle-o" size="28" />
     </template>
-  </van-cell>
+  </van-cell> -->
+  <SongItem v-for="obj in newlist"
+    :key="obj.id"
+    :name="obj.name"
+    :author="obj.song.artists[0].name"
+    :id="obj.id"
+></SongItem>
   </div>
 </template>
 
 <script>
 import { gethomelistapi,getnewhomelistapi } from "@/apis";
+import SongItem from '@/components/SongItem.vue'
 export default {
   data() {
     return {
       list: [],
       newlist:[]
     };
+  },
+  components:{
+    SongItem
   },
   created() {
     this.getlist();

@@ -3,12 +3,17 @@ import VueRouter from 'vue-router'
 import Layout from '@/views/Layout'
 import Home from '@/views/Home'
 import Search from '@/views/Search'
+import Play from '@/views/Play'
 Vue.use(VueRouter)
 const routes=[
     {
         path: '/',
         redirect: '/layout/home'
     },
+    {
+      path: '/play',
+      component: Play,
+  },
     {
       path: '/layout',
       component: Layout,
